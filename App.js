@@ -4,101 +4,70 @@ var React = require('react-native');
 var {
   AppRegistry,
   NavigatorIOS,
-  PickerIOS,
   StyleSheet,
   View,
 } = React;
 
+var Constants = require('./utilities/Constants');
 var HomeScreen = require('./components/HomeScreen');
+var ServerPicker = require('./components/ServerPicker');
 
-var PickerItemIOS = PickerIOS.item;
-
-var FMSERVERS = ["Scania", "Windia", "Bera", "Broa", "Khaini", "Ymck", "Gazed", "Bellonova", "Renegades"];
-
-var topServer = 0;
+var FMSERVERS = Constants.SERVERS;
+var START_SERVER = Constants.START_SERVER;
 
 var App = React.createClass({
-
-  getInitialState: function(){
+  getInitialState: function() {
     return {
-      server: 8,
+      server: START_SERVER,
     };
   },
-
-  topRoute: function(num){
+  setServerState: function(serverIndex) {
+    this.setState({
+      server: serverIndex
+    });
+  },
+  getHomeScreenRoute: function(serverIndex) {
     return {
-          title: FMSERVERS[num].toUpperCase(),
-          component: HomeScreen,
-          rightButtonTitle: 'Change Server',
-          backButtonTitle: 'Cancel',
-          passProps: {
-            server: num,
-          },
-          onRightButtonPress: () => {
-              this.refs.nav.push(
-                this.chooseServer()
-              );
-          },
+      title: FMSERVERS[serverIndex].toUpperCase(),
+      component: HomeScreen,
+      rightButtonTitle: 'Change Server',
+      backButtonTitle: 'Cancel',
+      passProps: {
+        server: serverIndex,
+      },
+      onRightButtonPress: () => {
+        this.refs.nav.push(
+          this.getChooseServerRoute()
+        );
+      },
     };
   },
-
-  setServer: function(serverIndex){
-      this.setState({server: serverIndex});
-  },
-
-  chooseServer: function(){
+  getChooseServerRoute: function() {
     return {
-          title: 'CHOOSE SERVER',
-          component: ServerPicker,
-          rightButtonTitle: 'Done',
-          backButtonTitle: 'Change',
-          onRightButtonPress: () => {
-            console.log("SERVER WOY " + this.state.server );
-            this.refs.nav.resetTo(this.topRoute(this.state.server));
-          },
-          passProps: {
-             setServer: this.setServer,
-             currentServer: this.state.server,
-          }
+      title: 'CHOOSE SERVER',
+      component: ServerPicker,
+      rightButtonTitle: 'Done',
+      backButtonTitle: 'Change',
+      passProps: {
+        servers: FMSERVERS,
+        setServer: this.setServerState,
+        currentServer: this.state.server,
+      },
+      onRightButtonPress: () => {
+        this.refs.nav.resetTo(
+          this.getHomeScreenRoute(this.state.server)
+        );
+      },
     };
   },
-
   render: function() {
-
     return (
       <NavigatorIOS
         ref="nav"
         style={styles.container}
         itemWrapperStyle={styles.wrapperStyle}
-        initialRoute={this.topRoute(8)}
+        initialRoute={this.getHomeScreenRoute(this.state.server)}
       />
-    );
-  }
-});
-
-var ServerPicker = React.createClass({
-
-  getInitialState: function(){
-    return {
-       server: this.props.currentServer,
-    };
-  },
-
-  render: function() {
-    return (
-      <View style={styles.container}>
-        <PickerIOS
-          selectedValue={this.state.server}
-          onValueChange={(serverNum) => { this.props.setServer(serverNum); this.setState({server: serverNum});}} >
-          {FMSERVERS.map((server) =>
-              <PickerItemIOS
-                key={server}
-                value={FMSERVERS.indexOf(server)}
-                label={server}
-              />
-          )}
-        </PickerIOS>
-      </View>
     );
   },
 });
@@ -114,7 +83,7 @@ var styles = StyleSheet.create({
   wrapperStyle: {
     fontFamily: 'Effra-Regular',
     fontSize: 14,
-  }
+  },
 });
 
 AppRegistry.registerComponent('AwesomeProject', () => App);
