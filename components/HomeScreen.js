@@ -15,11 +15,12 @@ var API_URL = 'http://maple.fm/api/2/';
 var ItemCell = require('../components/ItemCell');
 var SearchBar = require('../components/SearchBar');
 
+var allData = [];
+
 var HomeScreen = React.createClass({
 
   getInitialState: function() {
     return {
-      all: [],
       dataSource: new ListView.DataSource({
         rowHasChanged: (row1, row2) => row1 !== row2,
       }),
@@ -51,12 +52,12 @@ var HomeScreen = React.createClass({
       .then((response) => response.json())
       .then((responseData) => {
         this.setState({
-          all: responseData.fm_items.sort(function(a, b) {
-            if(a.name > b.name) return 1;
-            else if(a.name < b.name) return -1;
-            else return 0;
-          }),
           lastUpdated: responseData.seconds_ago,
+        });
+        allData = responseData.fm_items.sort(function(a, b) {
+          if(a.name > b.name) return 1;
+          else if(a.name < b.name) return -1;
+          else return 0;
         });
       })
       .then(() => {
@@ -75,19 +76,22 @@ var HomeScreen = React.createClass({
     });
     if(!query){
       this.setState({
-        dataSource: this.getDataSource(this.state.all),
+        dataSource: this.getDataSource(allData),
         loaded: true,
       });
       return;
     }
-    var original = this.state.all;
+    var original = allData;
     var filtered = [];
+    var start = new Date().getTime();
     for (var i=0; i < original.length; i++) {
       if (original[i].name.toLowerCase().indexOf(query) >= 0 ||
           original[i].character_name.toLowerCase().indexOf(query) >= 0) {
         filtered.push(original[i]);
       }
     }
+    var stop = new Date().getTime();
+    console.log(stop - start);
     this.setState({
       dataSource: this.getDataSource(filtered),
       loaded: true,
